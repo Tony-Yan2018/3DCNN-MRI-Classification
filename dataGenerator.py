@@ -7,6 +7,9 @@ from tensorflow.python.keras import backend as K
 import json
 from imageProcess import imPreProcess
 import random
+from cfg import DATA_DIR, IMSIZE
+
+
 
 
 CLASSES = ["RMI_OK", "RMI_INF", "RMI_DEG"]
@@ -81,20 +84,83 @@ def generate_data(input_dir, size):
 
     l = list(PatientsMap.items())
     random.shuffle(l)
-    PatientsMap = dict(l)
+    train_length=round(len(l)*0.9)
+    val_length=train_length-len(l)
+    l_train = l[:train_length]
+    l_val = l[val_length:]
+    return l_train,l_val,classMap,min_cuts
+
+def train_data_generator(input_dir, size, batchSize):
+    X = []
+    Y = []
+    PatientsSequences = {}  # patient's id mapped to STIR and T1 number
+    with open('PatientsSequences.json', 'rb') as f:
+        text = json.load(f)
+        for key, value in text.items():
+            PatientsSequences[int(key)] = value
+
+    l_train, l_val, classMap, min_cuts=generate_data(input_dir, size)
+    PatientsMap = dict(l_train)
 
     half_cut = int(min_cuts / 2)
     nb_frames = min_cuts * 2  # T1 + STIR num
+    bs=0
+    while 1:
+        if bs==0:
+            X = []
+            Y = []
+        for key, value in PatientsMap.items():
+            simage = np.zeros((size, size, nb_frames)) # image series of one sample(patient)
+            i = 0 # index for simage, 22 in total
+            for s in SEQUENCES:
+                half_nb_imgs = int(PatientsSequences[key][s][0][1] / 2)
+                first_img_id = PatientsSequences[key][s][0][0] + half_nb_imgs - half_cut
+
+                for img_id in range(min_cuts):
+                    cut_id = first_img_id + img_id
+                    file = os.path.join(input_dir, value) + '/' + str(key).zfill(4) + '_' + s + '_' + str(cut_id).zfill(4) + '.png'
+                    try:
+                        image = imPreProcess(file)
+                        image = cv2.resize(image, (size, size))
+                        simage[:, :, i] = image
+                    except Exception as e:
+                        print(f'Error found at {file} & {cut_id}\n')
+
+                    i += 1
+            # simage = simage.astype(np.float16);
+            bs+=1
+            X.append(simage)  # X to be the concatenation of STIR and T1
+            Y.append(classMap[value])
+            if bs==batchSize:
+                bs=0
+                yield [np.asarray(X)[:, :, :, :, np.newaxis], np.asarray(Y)]
+
+def val_data_generator(input_dir, size):
+    X = []
+    Y = []
+    PatientsSequences = {}  # patient's id mapped to STIR and T1 number
+    with open('PatientsSequences.json', 'rb') as f:
+        text = json.load(f)
+        for key, value in text.items():
+            PatientsSequences[int(key)] = value
+
+    l_train, l_val, classMap, min_cuts = generate_data(input_dir, size)
+    PatientsMap = dict(l_val)
+
+    half_cut = int(min_cuts / 2)
+    nb_frames = min_cuts * 2
+
     for key, value in PatientsMap.items():
-        simage = np.zeros((size, size, nb_frames))
-        i = 0
+        simage = np.zeros((size, size, nb_frames))  # image series of one sample(patient)
+        i = 0  # index for simage, 22 in total
         for s in SEQUENCES:
             half_nb_imgs = int(PatientsSequences[key][s][0][1] / 2)
             first_img_id = PatientsSequences[key][s][0][0] + half_nb_imgs - half_cut
 
             for img_id in range(min_cuts):
                 cut_id = first_img_id + img_id
-                file = os.path.join(input_dir, value) + '/' + str(key).zfill(4) + '_' + s + '_' + str(cut_id).zfill(4) + '.png'
+                file = os.path.join(input_dir, value) + '/' + str(key).zfill(4) + '_' + s + '_' + str(cut_id).zfill(
+                    4) + '.png'
                 try:
                     image = imPreProcess(file)
                     image = cv2.resize(image, (size, size))
@@ -106,4 +172,5 @@ def generate_data(input_dir, size):
 
         X.append(simage)  # X to be the concatenation of STIR and T1
         Y.append(classMap[value])
-        yield [np.asarray(X)[:, :, :,:,np.newaxis], np.asarray(Y)]
+
+    return np.array(X), np.array(Y)

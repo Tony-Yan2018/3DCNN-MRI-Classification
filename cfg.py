@@ -1,5 +1,8 @@
-IMSIZE = 32
+
+
+IMSIZE = 40
 MNAME = 'MRI-3DCNN'
 DATA_DIR = "./images/raw"
-epoch_num = 20
-steps_per_epoch = 128
+epoch_num = 5
+batchSize=1
+
