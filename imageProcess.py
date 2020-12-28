@@ -6,12 +6,6 @@ import matplotlib.pyplot as plt
 
 def imPreProcess(imPath):
     im = cv2.imread(imPath, cv2.IMREAD_GRAYSCALE)
-    # im = cv2.resize(
-    #     im,
-    #     (256, 256),
-    #     interpolation=cv2.INTER_CUBIC
-    # )
-    # gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
     gray = cv2.GaussianBlur(im, (5, 5), 0) # Gaussian smoothing
 
     thresh = cv2.threshold(gray, 15, 255, cv2.THRESH_BINARY)[1] # binarization
@@ -29,43 +23,17 @@ def imPreProcess(imPath):
     extTop = tuple(c[c[:, :, 1].argmin()][0])
     extBot = tuple(c[c[:, :, 1].argmax()][0])
 
-    img_cnt = cv2.drawContours(im.copy(), [c], -1, (0, 255, 255), 4)
+    img_cnt = cv2.drawContours(im.copy(), [c], -1, (199, 0, 129), 5)
 
     # add extreme points
-    img_pnt = cv2.circle(img_cnt.copy(), extLeft, 8, (0, 0, 255), -1)
-    img_pnt = cv2.circle(img_pnt, extRight, 8, (0, 255, 0), -1)
+    img_pnt = cv2.circle(img_cnt.copy(), extLeft, 8, (255, 0, 0), -1)
+    img_pnt = cv2.circle(img_pnt, extRight, 8, (255, 0, 0), -1)
     img_pnt = cv2.circle(img_pnt, extTop, 8, (255, 0, 0), -1)
-    img_pnt = cv2.circle(img_pnt, extBot, 8, (255, 255, 0), -1)
+    img_pnt = cv2.circle(img_pnt, extBot, 8, (255, 0, 0), -1)
 
     # crop
     ADD_PIXELS = 0
     new_img = im[extTop[1] - ADD_PIXELS:extBot[1] + ADD_PIXELS,
               extLeft[0] - ADD_PIXELS:extRight[0] + ADD_PIXELS].copy()
 
-    # plt.figure(figsize=(15, 6))
-    # plt.subplot(141)
-    # plt.imshow(im)
-    # plt.xticks([])
-    # plt.yticks([])
-    # plt.title('Step 1. Get the original image')
-    # plt.subplot(142)
-    # plt.imshow(img_cnt)
-    # plt.xticks([])
-    # plt.yticks([])
-    # plt.title('Step 2. Find the biggest contour')
-    # plt.subplot(143)
-    # plt.imshow(img_pnt)
-    # plt.xticks([])
-    # plt.yticks([])
-    # plt.title('Step 3. Find the extreme points')
-    # plt.subplot(144)
-    # plt.imshow(new_img)
-    # plt.xticks([])
-    # plt.yticks([])
-    # plt.title('Step 4. Crop the image')
-    # # plt.ion()
-    # plt.show()
-
     return new_img
-
-# imPreProcess('./images/raw\RMI_DEG/0043_STIR_0011.png'.replace('\\','/'))

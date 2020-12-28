@@ -1,7 +1,6 @@
 import os
 import cv2
 import numpy as np
-# from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 import json
@@ -68,10 +67,6 @@ def generate_data(input_dir, size):
     # PatientsOK: 1 if T1 pic number and STIR pic number are same; 0 if T1 pic number and STIR pic number are different(128).
     # min_cuts: the minimum pic number among all patient samples (11).
 
-    # f = open("PatientsErrors.json", "w")
-    # for pid in PatientsErrors.keys():
-    #     f.write('{}:{}\n'.format(pid, PatientsErrors[pid]))
-    # f.close()
     PatientsMap = dict()
     classMap = dict()
     for c in classes_list:

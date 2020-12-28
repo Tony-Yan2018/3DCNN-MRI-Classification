@@ -15,23 +15,16 @@ def build_model(depth):
 
     layer = Conv3D(filters=64, kernel_size=3, name='STIR_3d_1', activation="relu")(input)
     layer = Conv3D(filters=64, kernel_size=3, name='STIR_3d_2', activation="relu")(layer)
-
     layer = BatchNormalization()(layer)
-    print(layer.shape)
 
     layer = Conv3D(filters=128, kernel_size=3, name='STIR_3d_3', activation="relu")(layer)
     layer = Conv3D(filters=128, kernel_size=3, strides=2,name='STIR_3d_4', activation="relu")(layer)
-    # layer = MaxPool3D(pool_size=2)(layer)
     layer = BatchNormalization()(layer)
-    print(layer.shape)
 
     layer = Conv3D(filters=256, kernel_size=3, name='STIR_3d_5', activation="relu")(layer)
     layer = Conv3D(filters=256, kernel_size=3, strides=2,name='STIR_3d_6', activation="relu")(layer)
-    # layer = MaxPool3D(pool_size=2)(layer)
     layer = BatchNormalization()(layer)
-    print(layer.shape)
 
-    # layer = GlobalAveragePooling3D()(layer)
     layer = Flatten()(layer)
     layer = Dense(units=256, name='STIR_dense',activation="relu")(layer)
     layer = Dropout(0.3)(layer)
@@ -42,5 +35,5 @@ def build_model(depth):
 
     print(model.metrics_names)
     print(model.summary())
-    # plot_model(model, to_file=f'Model_Summary_{MNAME}.png', show_shapes=True)
+    plot_model(model, to_file=f'Model_Summary_{MNAME}.png', show_shapes=True)
     return model

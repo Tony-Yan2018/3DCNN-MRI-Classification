@@ -7,13 +7,7 @@ import time
 import os
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'   #指定第一块GPU可用
-config = tf.compat.v1.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.9  # 程序最多只能占用指定gpu50%的显存
-config.gpu_options.allow_growth = True      #程序按需申请内存
-sess = tf.compat.v1.Session(config = config)
-
-tbd = TensorBoard(log_dir=f'./logs/MRI-{time.time()}')
+tbd = TensorBoard(log_dir=f'C:\\logs\MRI-3DCNN')
 mckpt = ModelCheckpoint(
                 filepath="./ckpt/MRI-3D.hdf5",
                 save_best_only=True,  # Only save a model if `loss` has improved.
